@@ -59,13 +59,13 @@ int main(int argc, char *argv[]){
     printf("open sungkong!\n");
     sleep(2);
     
-    ioctl(i2s_fd, I2S_SET_TXON, 0);   // Make sure tx is disabled
+    ioctl(fd, I2S_SET_TXON, 0);   // Make sure tx is disabled
     /* Clear software buffers */
-    ioctl(i2s_fd, I2S_CLEAR_TX_BUFF, 0);
-    ioctl(i2s_fd, I2S_CLEAR_RX_BUFF, 0);
+    ioctl(fd, I2S_CLEAR_TX_BUFF, 0);
+    ioctl(fd, I2S_CLEAR_RX_BUFF, 0);
     /* Clear hardware FIFOs */
-    ioctl(i2s_fd, I2S_CLR_TX_FIFO, 0);
-    ioctl(i2s_fd, I2S_CLR_RX_FIFO, 0);
+    ioctl(fd, I2S_CLR_TX_FIFO, 0);
+    ioctl(fd, I2S_CLR_RX_FIFO, 0);
     nbytes = sizeof(int32_t);
     
     printf("Running example.\n");
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
     int sound_fp = open(argv[1], O_RDONLY);
     
     // Get max buffer size before the buffer is filled
-    buffer_size = ioctl(i2s_fd, I2S_TX_BUFF_SPACE);
+    buffer_size = ioctl(fd, I2S_TX_BUFF_SPACE);
     printf("Kernel buffer size: %d\n", buffer_size);
     
     /* Read the number of bits per sample at offset 34 */
@@ -108,40 +108,40 @@ int main(int argc, char *argv[]){
     // Initialization of buffer
     for(i = 0; i < buffer_size - 1; ++i)
     {
-        if(ioctl(i2s_fd, I2S_TX_BUFF_SPACE) == 0)
+        if(ioctl(fd, I2S_TX_BUFF_SPACE) == 0)
         {
             printf("Buffer is full.\n");
             printf("i = %d\n", i);
             break;
         }
-        write(i2s_fd, wav_data + wav_data_offset, nbytes);
+        write(fd, wav_data + wav_data_offset, nbytes);
         wav_data_offset++;
     }
     
     // Enable TX
     printf("Enabling TX...\n");
     usleep(5);
-    ioctl(i2s_fd, I2S_SET_TXON, 1);
+    ioctl(fd, I2S_SET_TXON, 1);
     
     usleep(1);
     
     while(wav_data_offset < wav_samples)    // Loop until the file is over
     {
         usleep(1);
-        buffer_space = ioctl(i2s_fd, I2S_TX_BUFF_SPACE);
+        buffer_space = ioctl(fd, I2S_TX_BUFF_SPACE);
         for(j = 0; j < buffer_space; j++)
         {
             if(wav_data_offset >= wav_samples)
             {
                 break;
             }
-            write(i2s_fd, wav_data + wav_data_offset, nbytes);
+            write(fd, wav_data + wav_data_offset, nbytes);
             wav_data_offset++;
         }
     }
     
     printf("Disabling TX...\n");
-    ioctl(i2s_fd, I2S_SET_TXON, 0);
+    ioctl(fd, I2S_SET_TXON, 0);
     
     free(wav_data);
     close(sound_fp);
@@ -160,32 +160,32 @@ int main(int argc, char *argv[]){
     
     printf("Enabling RX...\n");
     usleep(5);
-    ioctl(i2s_fd, I2S_SET_RXON, 1);
+    ioctl(fd, I2S_SET_RXON, 1);
     
     /* Loop for a bit */
     for(i = 0; i < 50000; i++)
     {
-        // samples_available = ioctl(i2s_fd, I2S_RX_BUFF_ITEMS);
-        if(ioctl(i2s_fd, I2S_RX_BUFF_ITEMS) > 0)
+        // samples_available = ioctl(fd, I2S_RX_BUFF_ITEMS);
+        if(ioctl(fd, I2S_RX_BUFF_ITEMS) > 0)
         {
             /* If there are more samples than the buffer can hold, fill it, otherwise copy however many samples are available */
-            transfer_length = read(i2s_fd, &received_data, RECEIVED_DATA_SIZE_BYTES);
+            transfer_length = read(fd, &received_data, RECEIVED_DATA_SIZE_BYTES);
             fwrite(&received_data, nbytes, transfer_length, rx_fp);
         }
         usleep(1);
     }
     
-    ioctl(i2s_fd, I2S_SET_RXON, 0);
+    ioctl(fd, I2S_SET_RXON, 0);
     printf("Disabling RX...\n");
     
     // Clean up remaining samples, if any
-    samples_available = ioctl(i2s_fd, I2S_RX_BUFF_ITEMS);
+    samples_available = ioctl(fd, I2S_RX_BUFF_ITEMS);
     printf("Reading remaining samples: %d.\n", samples_available);
     
     if(samples_available > 0)
     {
         /* If there are more samples than the buffer can hold, fill it, otherwise copy however many samples are available */
-        transfer_length = read(i2s_fd, &received_data, RECEIVED_DATA_SIZE_BYTES);
+        transfer_length = read(fd, &received_data, RECEIVED_DATA_SIZE_BYTES);
         fwrite(&received_data, nbytes, transfer_length, rx_fp);
     }
     
@@ -194,6 +194,6 @@ int main(int argc, char *argv[]){
 #endif
     
     printf("Closing files.\n");
-    close(i2s_fd);
+    close(fd);
 	return 0;
 }
