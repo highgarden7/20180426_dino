@@ -243,7 +243,11 @@ static void SetGPIOOutputValue(int GPIO, bool outputValue)
 static ssize_t led_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
     sscanf(buf, "%du", &led_status);
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     if(led_status)
     {
         SetGPIOOutputValue(LedGpioPin, true); // Turn LED on.
@@ -276,6 +280,7 @@ struct file_operations DPG_fops = {
     .owner   = THIS_MODULE,
     .open    = DPG_i2s_open,
     .release = DPG_i2s_release,
+<<<<<<< HEAD
     .read    = DPG_read,
     .write   = DPG_write,
     .unlocked_ioctl   = DPG_unlocked_ioctl,
@@ -726,25 +731,50 @@ static long DPG_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lon
   return 0;
 }
 
+=======
+    //.read    = DPG_read,
+    //.write   = DPG_write,
+    //.unlocked_ioctl   = DPG_unlocked_ioctl,
+};
+static void buffer_init(struct i2s_buffer *b, int32_t *data, int size)
+{
+    b->head = 0;
+    b->tail = 0;
+    b->size = size;
+    b->buffer = data;
+}
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
 static int __init DPG_i2s_init(void)
 {
     int result;
     printk("DPG init called\n");
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     int error = 0;
     s_pGpioRegisters = (struct GpioRegisters *)ioremap(GPIO_BASE, sizeof(struct GpioRegisters));         // Map physical address to virtual address space.
     i2s = (volatile struct i2s_inst *) ioremap(I2S_BASE, I2S_SIZE);
     printk("DPG : i2s register on \n");
+<<<<<<< HEAD
 
     buffer_init(&rx_buf, rx_buffer, SAMPLE_BUFF_LEN);
     buffer_init(&tx_buf, tx_buffer, SAMPLE_BUFF_LEN);
 
+=======
+    
+    buffer_init(&rx_buf, rx_buffer, SAMPLE_BUFF_LEN);
+    buffer_init(&tx_buf, tx_buffer, SAMPLE_BUFF_LEN);
+    
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     wmb();
     i2s->CS_A = 0;
     i2s->MODE_A = 0;
     i2s->TXC_A = 0;
     i2s->RXC_A = 0;
     i2s->GRAY = 0;
+<<<<<<< HEAD
 
     printk("DPG : i2s register reset\n");
 
@@ -752,6 +782,15 @@ static int __init DPG_i2s_init(void)
     printk("Configuring RPI as I2S slave..\n");
     i2s->MODE_A = I2S_MODE_A_CLKM | I2S_MODE_A_FSM;
 
+=======
+    
+    printk("DPG : i2s register reset\n");
+    
+    
+    printk("Configuring RPI as I2S slave..\n");
+    i2s->MODE_A = I2S_MODE_A_CLKM | I2S_MODE_A_FSM;
+    
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     /* Configure channels and frame width
      * Gives a channel width of 24 bits,
      * First bit of channel 1 is received on the 2nd clock cycle,
@@ -763,21 +802,37 @@ static int __init DPG_i2s_init(void)
     // Disable Standby
     printk(KERN_INFO "Disabling standby...");
     i2s->CS_A |= I2S_CS_A_STBY;
+<<<<<<< HEAD
 
     // Reset FIFOs
     printk(KERN_INFO "Clearing FIFOs...");
     i2s->CS_A |= I2S_CS_A_TXCLR | I2S_CS_A_RXCLR;
 
+=======
+    
+    // Reset FIFOs
+    printk(KERN_INFO "Clearing FIFOs...");
+    i2s->CS_A |= I2S_CS_A_TXCLR | I2S_CS_A_RXCLR;
+    
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     /* Interrupt driven mode */
     /* Interrupt when TX fifo is less than full and RX fifo is full */
     i2s->CS_A |= I2S_CS_A_TXTHR(0x1) | I2S_CS_A_RXTHR(0x3);
     // Enable TXW and RXR interrupts
     i2s->INTEN_A = I2S_INTEN_A_TXW | I2S_INTEN_A_RXR;
+<<<<<<< HEAD
 
     // Enable the PCM/I2S module
     printk(KERN_INFO "Enabling I2S...");
     i2s->CS_A |= I2S_CS_A_EN;
 
+=======
+    
+    // Enable the PCM/I2S module
+    printk(KERN_INFO "Enabling I2S...");
+    i2s->CS_A |= I2S_CS_A_EN;
+    
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     printk(KERN_INFO "I2S configuration Complete.");
     printk(KERN_INFO "I2S CS contents %x", i2s->CS_A);
     printk(KERN_INFO "I2S MODE contents %x", i2s->MODE_A);
@@ -788,7 +843,11 @@ static int __init DPG_i2s_init(void)
     printk(KERN_INFO "I2S_SET_TXON macro value = %x", I2S_SET_TXON);
     printk(KERN_INFO "I2S_SET_RXON macro value = %x", I2S_SET_RXON);
     printk(KERN_INFO "I2S_TX_BUFF_SPACE macro value = %x", I2S_TX_BUFF_SPACE);
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     /* I2S driver is now configured, but TX and RX will need to be turned on before data is transferred */
 
     result = register_chrdev(MAJOR,"DPG",&DPG_fops);
@@ -807,7 +866,11 @@ static int __init DPG_i2s_init(void)
     if(error) {
         printk(KERN_INFO "Failed to register sysfs for LED");
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     return error;
 }
 
