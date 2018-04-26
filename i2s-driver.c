@@ -172,7 +172,6 @@ int MAJOR = 230;
 #define GPIO_BASE (BCM2835_PERI_BASE + 0x00200000)
 #define I2S_BASE  (BCM2835_PERI_BASE + 0x00203000)
 #define I2S_SIZE  0x24
-#define I2S_INTERRUPT 79
 static const int LedGpioPin = 16;           // Pin LED is connected to
 static int led_status = 0;                    // 0-off, 1-on
 static struct kobject *led_kobj;
@@ -223,31 +222,27 @@ static ssize_t led_show(struct kobject *kobj, struct kobj_attribute *attr, char 
 }
 static void SetGPIOFunction(int GPIO, int functionCode)
 {
-    int registerIndex = GPIO / 10;
-    int bit = (GPIO%10)*3;
-    unsigned oldValue = s_pGpioRegisters->GPFSEL[registerIndex];
-    unsigned mask = 0b111 << bit;
-    s_pGpioRegisters->GPFSEL[registerIndex] = (oldValue & ~mask) | ((functionCode << bit) & mask);
+	int registerIndex = GPIO / 10;
+	int bit = (GPIO%10)*3;
+	unsigned oldValue = s_pGpioRegisters->GPFSEL[registerIndex];
+	unsigned mask = 0b111 << bit;
+	s_pGpioRegisters->GPFSEL[registerIndex] = (oldValue & ~mask) | ((functionCode << bit) & mask);
 }
 static void SetGPIOOutputValue(int GPIO, bool outputValue)
 {
-    if(outputValue)
-    {
-        s_pGpioRegisters->GPSET[GPIO/32] = (1<<(GPIO%32));
-    }
-    else
-    {
-        s_pGpioRegisters->GPCLR[GPIO/32] = (1<<(GPIO%32));
-    }
+	if(outputValue)
+	{
+		s_pGpioRegisters->GPSET[GPIO/32] = (1<<(GPIO%32));
+	}
+	else
+	{
+		s_pGpioRegisters->GPCLR[GPIO/32] = (1<<(GPIO%32));
+	}
 }
 static ssize_t led_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t count)
 {
     sscanf(buf, "%du", &led_status);
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     if(led_status)
     {
         SetGPIOOutputValue(LedGpioPin, true); // Turn LED on.
@@ -280,11 +275,11 @@ struct file_operations DPG_fops = {
     .owner   = THIS_MODULE,
     .open    = DPG_i2s_open,
     .release = DPG_i2s_release,
-<<<<<<< HEAD
     .read    = DPG_read,
     .write   = DPG_write,
     .unlocked_ioctl   = DPG_unlocked_ioctl,
 };
+
 static void inline i2s_enable(void)
 {
   wmb();
@@ -731,132 +726,24 @@ static long DPG_unlocked_ioctl(struct file *file, unsigned int cmd, unsigned lon
   return 0;
 }
 
-=======
-    //.read    = DPG_read,
-    //.write   = DPG_write,
-    //.unlocked_ioctl   = DPG_unlocked_ioctl,
-};
-static void buffer_init(struct i2s_buffer *b, int32_t *data, int size)
-{
-    b->head = 0;
-    b->tail = 0;
-    b->size = size;
-    b->buffer = data;
-}
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
+
 static int __init DPG_i2s_init(void)
 {
     int result;
     printk("DPG init called\n");
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
-    int error = 0;
-    s_pGpioRegisters = (struct GpioRegisters *)ioremap(GPIO_BASE, sizeof(struct GpioRegisters));         // Map physical address to virtual address space.
-    i2s = (volatile struct i2s_inst *) ioremap(I2S_BASE, I2S_SIZE);
-    printk("DPG : i2s register on \n");
-<<<<<<< HEAD
-
-    buffer_init(&rx_buf, rx_buffer, SAMPLE_BUFF_LEN);
-    buffer_init(&tx_buf, tx_buffer, SAMPLE_BUFF_LEN);
-
-=======
-    
-    buffer_init(&rx_buf, rx_buffer, SAMPLE_BUFF_LEN);
-    buffer_init(&tx_buf, tx_buffer, SAMPLE_BUFF_LEN);
-    
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
-    wmb();
-    i2s->CS_A = 0;
-    i2s->MODE_A = 0;
-    i2s->TXC_A = 0;
-    i2s->RXC_A = 0;
-    i2s->GRAY = 0;
-<<<<<<< HEAD
-
-    printk("DPG : i2s register reset\n");
-
-
-    printk("Configuring RPI as I2S slave..\n");
-    i2s->MODE_A = I2S_MODE_A_CLKM | I2S_MODE_A_FSM;
-
-=======
-    
-    printk("DPG : i2s register reset\n");
-    
-    
-    printk("Configuring RPI as I2S slave..\n");
-    i2s->MODE_A = I2S_MODE_A_CLKM | I2S_MODE_A_FSM;
-    
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
-    /* Configure channels and frame width
-     * Gives a channel width of 24 bits,
-     * First bit of channel 1 is received on the 2nd clock cycle,
-     * First bit of channel 2 is received on the 34rd clock cycle */
-    printk(KERN_INFO "Setting channel width...");
-    i2s->RXC_A = I2S_RXC_A_CH1EN | I2S_RXC_A_CH1POS(1) | I2S_RXC_A_CH1WEX | I2S_RXC_A_CH1WID(0) | I2S_RXC_A_CH2EN | I2S_RXC_A_CH2POS(33) | I2S_RXC_A_CH2WEX | I2S_RXC_A_CH2WID(0);
-    i2s->TXC_A = I2S_TXC_A_CH1EN | I2S_TXC_A_CH1POS(1) | I2S_TXC_A_CH1WEX | I2S_TXC_A_CH1WID(0) | I2S_TXC_A_CH2EN | I2S_TXC_A_CH2POS(33) | I2S_TXC_A_CH2WEX | I2S_TXC_A_CH2WID(0);
-
-    // Disable Standby
-    printk(KERN_INFO "Disabling standby...");
-    i2s->CS_A |= I2S_CS_A_STBY;
-<<<<<<< HEAD
-
-    // Reset FIFOs
-    printk(KERN_INFO "Clearing FIFOs...");
-    i2s->CS_A |= I2S_CS_A_TXCLR | I2S_CS_A_RXCLR;
-
-=======
-    
-    // Reset FIFOs
-    printk(KERN_INFO "Clearing FIFOs...");
-    i2s->CS_A |= I2S_CS_A_TXCLR | I2S_CS_A_RXCLR;
-    
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
-    /* Interrupt driven mode */
-    /* Interrupt when TX fifo is less than full and RX fifo is full */
-    i2s->CS_A |= I2S_CS_A_TXTHR(0x1) | I2S_CS_A_RXTHR(0x3);
-    // Enable TXW and RXR interrupts
-    i2s->INTEN_A = I2S_INTEN_A_TXW | I2S_INTEN_A_RXR;
-<<<<<<< HEAD
-
-    // Enable the PCM/I2S module
-    printk(KERN_INFO "Enabling I2S...");
-    i2s->CS_A |= I2S_CS_A_EN;
-
-=======
-    
-    // Enable the PCM/I2S module
-    printk(KERN_INFO "Enabling I2S...");
-    i2s->CS_A |= I2S_CS_A_EN;
-    
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
-    printk(KERN_INFO "I2S configuration Complete.");
-    printk(KERN_INFO "I2S CS contents %x", i2s->CS_A);
-    printk(KERN_INFO "I2S MODE contents %x", i2s->MODE_A);
-    printk(KERN_INFO "I2S RXC contents %x", i2s->RXC_A);
-    printk(KERN_INFO "I2S TXC contents %x", i2s->TXC_A);
-    printk(KERN_INFO "I2S INTEN contents %x", i2s->INTEN_A);
-    printk(KERN_INFO "I2S INTSTC contents %x", i2s->INTSTC_A);
-    printk(KERN_INFO "I2S_SET_TXON macro value = %x", I2S_SET_TXON);
-    printk(KERN_INFO "I2S_SET_RXON macro value = %x", I2S_SET_RXON);
-    printk(KERN_INFO "I2S_TX_BUFF_SPACE macro value = %x", I2S_TX_BUFF_SPACE);
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
-    /* I2S driver is now configured, but TX and RX will need to be turned on before data is transferred */
-
     result = register_chrdev(MAJOR,"DPG",&DPG_fops);
     if(result <0 )
     {
         printk("DPG : Can't get major number!\n:");
         return result;
     }
-    if(MAJOR == 0) MAJOR = result;
+    if(MAJOR == 0)
+        MAJOR = result;
+
+    int error = 0;
+    s_pGpioRegisters = (struct GpioRegisters *)ioremap(GPIO_BASE, sizeof(struct GpioRegisters));         // Map physical address to virtual address space.
+    i2s = (volatile struct i2s_inst *) ioremap(I2S_BASE, I2S_SIZE);
+    printk("DPG : i2s register on \n");
     SetGPIOFunction(LedGpioPin, 0b001);                    // Configure the pin as output.
     led_kobj = kobject_create_and_add("led_ctrl_pwr", kernel_kobj);
     if(!led_kobj) {
@@ -866,11 +753,6 @@ static int __init DPG_i2s_init(void)
     if(error) {
         printk(KERN_INFO "Failed to register sysfs for LED");
     }
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> f197bb5f797cefdf07e52e7087458dcf2242e726
     return error;
 }
 
